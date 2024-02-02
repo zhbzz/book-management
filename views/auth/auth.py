@@ -20,7 +20,6 @@ from widget.response_type import DatabaseErrorResponse
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-
 def check_uuid(user_uuid) -> bool:
     """
     返回uuid是否存在
