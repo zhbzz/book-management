@@ -1,0 +1,13 @@
+[APP]
+DEBUG               = true
+
+# 项目根目录的绝对路径
+HOME_DIR            = "/home/feng/Code/lvmin_BookRecommender"
+AUTH_SECRET_KEY     = "zhbzz"
+
+[DATABASE]
+USERNAME            = "root"
+PASSWORD            = "123456"
+DOMAIN              = "127.0.0.1:3306"
+DATABASE_NAME       = "zhbzz"
+REDIS_URL           = "redis://@localhost:6379/1"
