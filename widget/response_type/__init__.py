@@ -16,25 +16,6 @@ class Response:
             **self.data,
         })
 
-# class SuccessResponse(Response):
-#     def __init__(self, message="Success", code=200, **kwargs):
-#         super().__init__(message, code, **kwargs)
-
-# class ErrorResponse(Response):
-#     def __init__(self, message="Error", code=500, **kwargs):
-#         super().__init__(message, code, **kwargs)
-
-# class NotLoginResponse(Response):
-#     def __init__(self, message="Not login", code=401, **kwargs):
-#         super().__init__(message, code, **kwargs)
-
-# class DatabaseErrorResponse(Response):
-#     def __init__(self, message="Database error", code=500, **kwargs):
-#         super().__init__(message, code, **kwargs)
-
-# class FormatErrorResponse(Response):
-#     def __init__(self, message="Wrong format", code=400, **kwargs):
-#         super().__init__(message, code, **kwargs)
 
 class SuccessResponse(Response):
     def __init__(self, message="成功", code=200, **kwargs):
