@@ -22,13 +22,6 @@ from widget.response_type import DatabaseErrorResponse
 book_bp = Blueprint("book", __name__, url_prefix="/book")
 
 
-# def get_book_id(book_name):
-#     res = Book.query.filter_by(book_name=book_name).first()
-#     if res == None:
-#         return None
-#     return res.id
-
-
 # 添加/修改评分
 @book_bp.post("/update_rating/")
 def update_rating():
@@ -285,7 +278,7 @@ def hot_recommendations():
 
     top_books = BookEdge.query.order_by(
             desc(BookEdge.average_weight)
-        ).limit(data["top_x"]).all()
+        ).limit(data["top_x"] * 2).all()
 
     book_ids = []
     for item in top_books:
@@ -293,6 +286,7 @@ def hot_recommendations():
             book_ids.append(item.book_id_a)
         if len(book_ids) >= data["top_x"]:
             break
+
         if item.book_id_b not in book_ids:
             book_ids.append(item.book_id_b)
         if len(book_ids) >= data["top_x"]:
@@ -353,6 +347,7 @@ def persenal_recommendations():
 
         for item in next_ids:
             yield item
+        for item in next_ids:
             yield from bfs(item, visited)
 
     book_ids = []
@@ -373,7 +368,7 @@ def persenal_recommendations():
 
     res_ids = []
     idx = 0
-    while len(res_ids < int(data["top_k"])):
+    while len(res_ids) < int(data["top_x"]):
         try:
             res = next(generaters[idx])
         except StopIteration:

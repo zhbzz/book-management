@@ -55,14 +55,9 @@ class BookEdge(db.Model):
     book_id_a           = db.Column(db.Integer, nullable=False)
     book_id_b           = db.Column(db.Integer, nullable=False)
     weight              = db.Column(db.Float, default=0.0)
+
     edge_cnt            = db.Column(db.Integer, default=0)
     average_weight      = db.Column(db.Float, default=0.0)
-
-    # @property
-    # def average_weight(self) -> float:
-    #     if self.edge_cnt == 0:
-    #         return 0.0
-    #     return self.weight / self.edge_cnt
 
 
 class EdgeName(db.Model):
