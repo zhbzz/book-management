@@ -1,10 +1,27 @@
 from flask import Flask
 from flask_redis import FlaskRedis
-from db.model import db
 import config as cfg
+import logging
+
+from db.model import db
+from widget.datetime import now_time
+
+
+# logging init
+def cn_time(sec, what):
+    return now_time().timetuple()
+logging.Formatter.converter = cn_time
+logging.basicConfig(
+    format      = '%(asctime)s [%(levelname)s] %(message)s',
+    datefmt     = '%Y-%m-%d %H:%M:%S',
+    filename    = cfg.LOG_FILE_PATH,
+    encoding    = 'utf-8',
+    level       = logging.INFO,
+)
 
 # redis
 rds = FlaskRedis()
+
 
 def create_app():
     app = Flask(__name__)

@@ -7,9 +7,9 @@ import re # 正则
 from db.model import db
 from db.model import User
 from widget.datetime import now_time
-from widget.jwt.token import check_token
-from widget.jwt.token import generate_token
-from widget.jwt.token import _generate_new_secret_key
+from widget.jwt_auth import check_token
+from widget.jwt_auth import generate_token
+from widget.jwt_auth import _generate_new_secret_key
 from widget.response_type import ErrorResponse
 from widget.response_type import SuccessResponse
 from widget.response_type import NotLoginResponse
