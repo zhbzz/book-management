@@ -355,16 +355,12 @@ def persenal_recommendations():
             yield item
             yield from bfs(item, visited)
 
-    # 评分过的书依次排列(收藏的书如果没有评分则排在最后)
-    # dfs找评分最高的连接书, 按边权从大到小 yield
-    # 循环调用dfs() topx次
     book_ids = []
     ratings = BookRating.filter_by(uuid=uuid).order_by(
             desc(BookRating.rating)
         ).all()
     for item in ratings:
         book_ids.append(item.book_id)
-
     collections = BookCollection.filter_by(uuid=uuid).all()
     for item in collections:
         if item.book_id not in book_ids:
@@ -378,7 +374,10 @@ def persenal_recommendations():
     res_ids = []
     idx = 0
     while len(res_ids < int(data["top_k"])):
-        res = next(generaters[idx])
+        try:
+            res = next(generaters[idx])
+        except StopIteration:
+            break
         if res not in book_ids and res not in res_ids:
             res_ids.append(res)
         idx = (idx + 1) % len(generaters)
