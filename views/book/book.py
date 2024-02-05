@@ -11,6 +11,7 @@ from db.model import EdgeName
 from db.model import BookRating
 from db.model import BookCollection
 from widget.jwt_auth import check_token
+from widget.datetime import get_time_str
 from widget.response_type import ErrorResponse
 from widget.response_type import SuccessResponse
 from widget.response_type import NotLoginResponse
@@ -20,6 +21,85 @@ from widget.response_type import DatabaseErrorResponse
 
 
 book_bp = Blueprint("book", __name__, url_prefix="/book")
+
+
+@book_bp.post("/book_info/")
+def book_info():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "book_id" not in data or data["book_id"] == None:
+        return FormatErrorResponse().json()
+
+    if not isinstance(data["book_id"], int) or \
+       int(data["book_id"]) < 0:
+        return FormatErrorResponse(
+                message="book_id must be positive integer",
+            ).json()
+
+    book = Book.query.filter_by(id=int(data["book_id"])).first()
+    if book == None:
+        return NotFoundResponse().json()
+
+    return SuccessResponse(book_info={
+        "book_id"           : book.id,
+        "book_name"         : book.name,
+        "author"            : book.author,
+        "publishing_house"  : book.publishing_house,
+        "publishing_date"   : get_time_str(book.publishing_date),
+    }).json()
+
+
+@book_bp.post("/books_info/")
+def books_info():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "start" not in data or data["start"] == None:
+        return FormatErrorResponse().json()
+    if "end" not in data or data["end"] == None:
+        return FormatErrorResponse().json()
+
+    if  not isinstance(data["start"], int) or \
+        not isinstance(data["end"], int) or \
+        int(data["start"]) < 0 or \
+        int(data["end"]) < 0:
+        return FormatErrorResponse(
+                message="book_id must be positive integer",
+            ).json()
+
+    books = Book.query.filter(
+            Book.id >= data["start"],
+            Book.id < data["start"],
+        ).all()
+
+    ret_data = [{
+        "book_id"           : book.id,
+        "book_name"         : book.name,
+        "author"            : book.author,
+        "publishing_house"  : book.publishing_house,
+        "publishing_date"   : get_time_str(book.publishing_date),
+    } for book in books]
+
+    return SuccessResponse(books_info=ret_data).json()
 
 
 # 添加/修改评分
