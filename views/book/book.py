@@ -10,6 +10,7 @@ from db.model import BookEdge
 from db.model import EdgeName
 from db.model import BookRating
 from db.model import BookCollection
+from widget.recommender.recomender import PersonalRecommender
 from widget.jwt_auth import check_token
 from widget.datetime import get_time_str
 from widget.response_type import ErrorResponse
@@ -385,8 +386,8 @@ def hot_recommendations():
 
 
 # 个人推荐
-@book_bp.post("/persenal_recommendations/")
-def persenal_recommendations():
+@book_bp.post("/personal_recommendations/")
+def personal_recommendations():
     token = request.headers.get('Authorization')
     res = check_token(token)
     if res == None:
@@ -402,60 +403,20 @@ def persenal_recommendations():
     if "top_x" not in data or data["top_x"] == None:
         return FormatErrorResponse().json()
 
-    def bfs(book_id, visited: set):
-        """
-        bfs找评分最高的连接书, 按边权从大到小 yield
-        """
-        if book_id in visited:
-            return
-        visited.add(book_id)
-
-        next_ids = []
-        results = BookEdge.query.filter(or_(
-                BookEdge.book_id_a == book_id,
-                BookEdge.book_id_b == book_id,
-            )).order_by(desc(BookEdge.average_weight)).all()
-
-        for result in results:
-            if result.book_id_a != book_id:
-                res = result.book_id_a
-            else:
-                res = result.book_id_b
-
-            if res not in visited:
-                next_ids.append(res)
-
-        for item in next_ids:
-            yield item
-        for item in next_ids:
-            yield from bfs(item, visited)
-
     book_ids = []
+
     ratings = BookRating.filter_by(uuid=uuid).order_by(
             desc(BookRating.rating)
         ).all()
-    for item in ratings:
-        book_ids.append(item.book_id)
+    book_ids += [item.book_id for item in ratings]
+
     collections = BookCollection.filter_by(uuid=uuid).all()
-    for item in collections:
-        if item.book_id not in book_ids:
-            book_ids.append(item.book_id)
+    book_ids += [item.book_id for item in collections
+                 if item.book_id not in book_ids]
 
-    generaters = []
-    for book_id in book_ids:
-        visited = set()
-        generaters.append(bfs(book_id, visited))
+    recomender = PersonalRecommender(book_ids)
 
-    res_ids = []
-    idx = 0
-    while len(res_ids) < int(data["top_x"]):
-        try:
-            res = next(generaters[idx])
-        except StopIteration:
-            break
-        if res not in book_ids and res not in res_ids:
-            res_ids.append(res)
-        idx = (idx + 1) % len(generaters)
+    res_ids = recomender.get_recommended_books(int(data["top_x"]))
 
     ret_data = []
     for book_id in res_ids:
