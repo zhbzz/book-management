@@ -78,7 +78,7 @@ def _get_user_secret_key(uuid) -> str:
         user_key = user_key.decode("utf8")
         return user_key
 
-    res = UserSecretKey.query.filter_by(username=uuid).first()
+    res = UserSecretKey.query.filter_by(uuid=uuid).first()
     if res == None:
         user_key = _generate_new_secret_key(uuid)
         if user_key == None:

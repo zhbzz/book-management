@@ -2,7 +2,6 @@ from flask import request
 from flask import Blueprint
 import logging
 from sqlalchemy import desc
-from sqlalchemy import or_
 
 from db.model import db
 from db.model import Book
@@ -89,7 +88,7 @@ def books_info():
 
     books = Book.query.filter(
             Book.id >= data["start"],
-            Book.id < data["start"],
+            Book.id < data["end"],
         ).all()
 
     ret_data = [{

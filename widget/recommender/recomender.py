@@ -1,7 +1,7 @@
-
 from sqlalchemy import desc
 from sqlalchemy import or_
 from db.model import BookEdge
+
 
 class PersonalRecommender():
     def __init__(self, book_ids: list):

@@ -4,6 +4,7 @@ import config as cfg
 import logging
 
 from db.model import db
+from db.script import pre_add
 from widget.datetime import now_time
 
 
@@ -31,6 +32,11 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
+
+    # TODO: 预添加数据, 只在迁移时使用一次,
+    # 其他时候注释掉, 否则会导致非预添加数据丢失
+    with app.app_context():
+        pre_add()
 
     # redis
     app.config['REDIS_URL'] = cfg.redis_url
