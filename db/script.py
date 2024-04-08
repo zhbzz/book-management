@@ -151,6 +151,30 @@ def add_book_edge(user_uuid, book_id: int, rating):
 
 
 
+def add_books():
+    # 添加书籍信息
+    print("add books...")
+    with open(BOOK_INFO_PATH) as f:
+        _ = f.readline()
+        books = f.readlines()
+    for book in tqdm(books):
+        info = book.strip().split(",")
+        id = info[0]
+        name = info[1]
+        author = info[2]
+        db.session.add(Book(
+                id          = int(id),
+                book_name   = name,
+                author      = author,
+            ))
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        print("ERROR:", e)
+        return
+
+
 def pre_add():
     """
     需要在app.app_context()中调用

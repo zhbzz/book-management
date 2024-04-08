@@ -204,7 +204,7 @@ def get_all_ratings():
     for item in ratings:
         res = Book.query.filter_by(id=item.book_id).first()
         ret_data.append({
-            "book_id"   : res.book_id,
+            "book_id"   : res.id,
             "book_name" : res.book_name,
             "author"    : res.author,
             "rating"    : item.rating,
@@ -376,7 +376,7 @@ def hot_recommendations():
     for book_id in book_ids:
         res = Book.query.filter_by(id=book_id).first()
         ret_data.append({
-            "book_id"   : res.book_id,
+            "book_id"   : res.id,
             "book_name" : res.book_name,
             "author"    : res.author,
         })
@@ -404,12 +404,12 @@ def personal_recommendations():
 
     book_ids = []
 
-    ratings = BookRating.filter_by(uuid=uuid).order_by(
+    ratings = BookRating.query.filter_by(uuid=uuid).order_by(
             desc(BookRating.rating)
         ).all()
     book_ids += [item.book_id for item in ratings]
 
-    collections = BookCollection.filter_by(uuid=uuid).all()
+    collections = BookCollection.query.filter_by(uuid=uuid).all()
     book_ids += [item.book_id for item in collections
                  if item.book_id not in book_ids]
 
@@ -421,7 +421,7 @@ def personal_recommendations():
     for book_id in res_ids:
         res = Book.query.filter_by(id=book_id).first()
         ret_data.append({
-            "book_id"   : res.book_id,
+            "book_id"   : res.id,
             "book_name" : res.book_name,
             "author"    : res.author,
         })
