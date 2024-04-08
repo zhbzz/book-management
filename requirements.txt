@@ -12,3 +12,4 @@ redis==5.0.0
 APScheduler==3.10.4
 toml==0.10.2
 gevent-websocket==0.10.1
+tqdm==4.65.0
