@@ -1,10 +1,14 @@
 [APP]
+# TODO: release版本改为false
 DEBUG               = true
 
-# 项目根目录的绝对路径
+# TODO: 修改项目根目录的绝对路径
 HOME_DIR            = "/home/feng/Code/lvmin_BookRecommender"
+
+# TOOD: 可以修改为更长的,例如 256位密钥
 AUTH_SECRET_KEY     = "zhbzz"
 
+# 数据库配置
 [DATABASE]
 USERNAME            = "root"
 PASSWORD            = "123456"
