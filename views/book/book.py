@@ -23,6 +23,7 @@ from widget.response_type import DatabaseErrorResponse
 book_bp = Blueprint("book", __name__, url_prefix="/book")
 
 
+# MARK: book
 @book_bp.post("/book_info/")
 def book_info():
     token = request.headers.get('Authorization')
@@ -101,6 +102,165 @@ def books_info():
 
     return SuccessResponse(books_info=ret_data).json()
 
+
+@book_bp.post("/add_book")
+def add_book():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "name" not in data or data["name"] == None:
+        return FormatErrorResponse().json()
+    if "author" not in data or data["author"] == None:
+        return FormatErrorResponse().json()
+    if "publishing_house" not in data or data["publishing_house"] == None:
+        data["publishing_house"] = ""
+    if "publishing_date" not in data or data["publishing_date"] == None:
+        data["publishing_date"] = ""
+
+    book_name           = data["name"]
+    author              = data["author"]
+    publishing_house    = data["publishing_house"]
+    publishing_date     = data["publishing_date"]
+
+    res = Book.query.filter_by(
+            book_name   = book_name,
+            author      = author,
+        ).first()
+    if res != None:
+        return SuccessResponse(message="already exist").json()
+
+    db.session.add(Book(
+        book_name           = book_name,
+        author              = author,
+        publishing_house    = publishing_house,
+        publishing_date     = publishing_date,
+    ))
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        logging.error(str(e))
+        db.session.rollback()
+        return DatabaseErrorResponse().json()
+
+    return SuccessResponse().json()
+
+
+# 删除书
+@book_bp.post("/delete_book")
+def delete_book():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "name" not in data or data["name"] == None:
+        return FormatErrorResponse().json()
+    if "author" not in data or data["author"] == None:
+        return FormatErrorResponse().json()
+
+    book_name           = data["name"]
+    author              = data["author"]
+
+    res = Book.query.filter_by(
+            book_name   = book_name,
+            author      = author,
+        ).first()
+    if res == None:
+        return SuccessResponse(message="book dont exist").json()
+
+    db.session.delete(res)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        logging.error(str(e))
+        db.session.rollback()
+        return DatabaseErrorResponse().json()
+
+    return SuccessResponse().json()
+
+
+# 图书收藏
+@book_bp.post("/collect/")
+def collect():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "book_id" not in data or data["book_id"] == None:
+        return FormatErrorResponse().json()
+
+    res = BookCollection.query.filter_by(
+            uuid    = uuid,
+            book_id = data["book_id"],
+        ).first()
+    if res != None:
+        return ErrorResponse(message="book already colleted").json()
+
+    res = BookCollection(
+        uuid    = uuid,
+        book_id = data["book_id"],
+    )
+    db.session.add(res)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        logging.error(str(e))
+        db.session.rollback()
+        return DatabaseErrorResponse().json()
+
+    return SuccessResponse().json()
+
+
+# 获取所有收藏
+@book_bp.post("/get_all_collections/")
+def get_all_collections():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    collecitons = BookCollection.query.filter_by(uuid = uuid).all()
+
+    ret_data = []
+    for item in collecitons:
+        res = Book.query.filter_by(id=item.book_id).first()
+        ret_data.append({
+            "book_id"   : res.book_id,
+            "book_name" : res.book_name,
+            "author"    : res.author,
+        })
+
+    return SuccessResponse(all_collections=ret_data).json()
+
+
+# MARK: Rating
 
 # 添加/修改评分
 @book_bp.post("/update_rating/")
@@ -275,71 +435,7 @@ def delete_rating():
     return SuccessResponse().json()
 
 
-# 图书收藏
-@book_bp.post("/collect/")
-def collect():
-    token = request.headers.get('Authorization')
-    res = check_token(token)
-    if res == None:
-        return NotLoginResponse().json()
-
-    uuid = res["uuid"]
-
-    try:
-        data = request.get_json()
-    except Exception as e:
-        return FormatErrorResponse().json()
-
-    if "book_id" not in data or data["book_id"] == None:
-        return FormatErrorResponse().json()
-
-    res = BookCollection.query.filter_by(
-            uuid    = uuid,
-            book_id = data["book_id"],
-        ).first()
-    if res != None:
-        return ErrorResponse(message="book already colleted").json()
-
-    res = BookCollection(
-        uuid    = uuid,
-        book_id = data["book_id"],
-    )
-    db.session.add(res)
-
-    try:
-        db.session.commit()
-    except Exception as e:
-        logging.error(str(e))
-        db.session.rollback()
-        return DatabaseErrorResponse().json()
-
-    return SuccessResponse().json()
-
-
-# 获取所有收藏
-@book_bp.post("/get_all_collections/")
-def get_all_collections():
-    token = request.headers.get('Authorization')
-    res = check_token(token)
-    if res == None:
-        return NotLoginResponse().json()
-
-    uuid = res["uuid"]
-
-    collecitons = BookCollection.query.filter_by(uuid = uuid).all()
-
-    ret_data = []
-    for item in collecitons:
-        res = Book.query.filter_by(id=item.book_id).first()
-        ret_data.append({
-            "book_id"   : res.book_id,
-            "book_name" : res.book_name,
-            "author"    : res.author,
-        })
-
-    return SuccessResponse(all_collections=ret_data).json()
-
-
+# MARK: recommend
 # 热点推荐
 @book_bp.post("/hot_recommendations/")
 def hot_recommendations():
