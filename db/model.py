@@ -82,3 +82,14 @@ class EdgeName(db.Model):
     uuid                = db.Column(db.String(80), nullable=False)
     book_id_a           = db.Column(db.Integer, nullable=False)
     book_id_b           = db.Column(db.Integer, nullable=False)
+
+
+class BookComment(db.Model):
+    """
+    用户对书籍的评论
+    """
+    __tablename__       = 'book_comment'
+    id                  = db.Column(db.Integer, primary_key=True)
+    uuid                = db.Column(db.String(80), nullable=False)
+    book_id             = db.Column(db.Integer, nullable=False)
+    comment             = db.Column(db.Text, nullable=False)

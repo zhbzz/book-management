@@ -8,6 +8,7 @@ from db.model import Book
 from db.model import BookEdge
 from db.model import EdgeName
 from db.model import BookRating
+from db.model import BookComment
 from db.model import BookCollection
 from widget.recommender.recomender import PersonalRecommender
 from widget.jwt_auth import check_token
@@ -258,6 +259,109 @@ def get_all_collections():
         })
 
     return SuccessResponse(all_collections=ret_data).json()
+
+
+# 添加评论
+@book_bp.post("/add_comment/")
+def add_comment():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "book_id" not in data or data["book_id"] == None:
+        return FormatErrorResponse().json()
+    if "comment" not in data or data["comment"] == None:
+        return FormatErrorResponse().json()
+
+    old_comment = BookComment.query.filter_by(
+        uuid = uuid,
+        book_id = data["book_id"],
+    ).first()
+
+    if old_comment == None:
+        old_comment = BookComment(
+            uuid = uuid,
+            book_id = data["book_id"],
+            comment = data["comment"]
+        )
+        db.session.add(old_comment)
+    else:
+        old_comment.comment = data["comment"]
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        logging.error(str(e))
+        db.session.rollback()
+        return DatabaseErrorResponse().json()
+
+    return SuccessResponse().json()
+
+
+# 删除评论
+@book_bp.post("/delete_comment/")
+def delete_comment():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return FormatErrorResponse().json()
+
+    if "book_id" not in data or data["book_id"] == None:
+        return FormatErrorResponse().json()
+
+    old_comment = BookComment.query.filter_by(
+        uuid = uuid,
+        book_id = data["book_id"],
+    ).first()
+
+    if old_comment == None:
+        return SuccessResponse(message="comment dont exist").json()
+    else:
+        db.session.delete(old_comment)
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        logging.error(str(e))
+        db.session.rollback()
+        return DatabaseErrorResponse().json()
+
+    return SuccessResponse().json()
+
+
+# 获取评论
+@book_bp.post("/get_comments/")
+def get_comments():
+    token = request.headers.get('Authorization')
+    res = check_token(token)
+    if res == None:
+        return NotLoginResponse().json()
+
+    uuid = res["uuid"]
+
+    comments = BookComment.query.filter_by(uuid = uuid).all()
+
+    ret_data = [{
+        "book_id": item.book_id,
+        "comment": item.comment,
+    } for item in comments]
+
+    return SuccessResponse(comments=ret_data).json()
 
 
 # MARK: Rating
