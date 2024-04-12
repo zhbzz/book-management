@@ -2,7 +2,7 @@ import jwt
 import datetime
 import secrets
 
-from app import rds
+# from app import rds
 from config import AUTH_SECRET_KEY
 from db.model import db
 from db.model import User

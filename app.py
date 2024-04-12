@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 # redis
-rds = FlaskRedis()
+# rds = FlaskRedis()
 
 
 def create_app():
@@ -40,8 +40,8 @@ def create_app():
         # add_books()
 
     # redis
-    app.config['REDIS_URL'] = cfg.redis_url
-    rds.init_app(app)
+    # app.config['REDIS_URL'] = cfg.redis_url
+    # rds.init_app(app)
 
     from views import views_bp
     app.register_blueprint(views_bp)
